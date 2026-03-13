@@ -7,6 +7,8 @@ public abstract class RuleBase : MonoBehaviour
     public string ruleName = "New Rule";
     public Sprite ruleIcon;
     public bool isActive = false;
+
+    
     // Вызывается при применении правила
     public virtual void ApplyRule()
     {

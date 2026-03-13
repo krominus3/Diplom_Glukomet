@@ -6,8 +6,11 @@ public class ElasticityRule : RuleBase
     public float bounciness = 0.95f;
 
     private Collider objectCollider;
-    private PhysicsMaterial originalMaterial;
+    private PhysicsMaterial originalPhysicsMaterial;
     private Rigidbody rb;
+    private Material originalMaterial;
+    private Color originalColor;
+
 
     void Start()
     {
@@ -17,12 +20,16 @@ public class ElasticityRule : RuleBase
 
     public override void ApplyRule()
     {
+        if (rb == null) rb = GetComponent<Rigidbody>();
+        if (objectCollider == null) objectCollider = GetComponent<Collider>();
+
         base.ApplyRule();
 
+        isActive = true;
         if (objectCollider != null)
         {
             // —охран€ем оригинальный материал
-            originalMaterial = objectCollider.material;
+            originalPhysicsMaterial = objectCollider.material;
 
             // —оздаем новый упругий материал
             PhysicsMaterial physMat = new PhysicsMaterial("Elastic");
@@ -34,22 +41,22 @@ public class ElasticityRule : RuleBase
         SetObjectColor(Color.yellow);
     }
 
-    void OnCollisionEnter(Collision collision)
-    {
-        if (isActive && rb != null)
-        {
-            // ƒополнительна€ упругость при столкновении
-            ContactPoint contact = collision.contacts[0];
-            rb.linearVelocity = Vector3.Reflect(rb.linearVelocity, contact.normal) * bounciness;
-        }
-    }
+    //void OnCollisionEnter(Collision collision)
+    //{
+    //    //if (isActive && rb != null)
+    //    //{
+    //    //    // ƒополнительна€ упругость при столкновении
+    //    //    ContactPoint contact = collision.contacts[0];
+    //    //    rb.linearVelocity = Vector3.Reflect(rb.linearVelocity, contact.normal) * bounciness;
+    //    //}
+    //}
 
     public override void RemoveRule()
     {
         if (objectCollider != null)
         {
             // ¬озвращаем оригинальный материал
-            objectCollider.material = originalMaterial;
+            objectCollider.material = originalPhysicsMaterial;
         }
 
         ResetColor();
@@ -59,6 +66,10 @@ public class ElasticityRule : RuleBase
     void SetObjectColor(Color color)
     {
         Renderer renderer = GetComponent<Renderer>();
+        originalMaterial = renderer.material;
+        originalColor = renderer.material.color;
+
+
         if (renderer != null)
         {
             Material mat = new Material(Shader.Find("Standard"));
@@ -72,6 +83,8 @@ public class ElasticityRule : RuleBase
         Renderer renderer = GetComponent<Renderer>();
         if (renderer != null)
         {
+            renderer.material = originalMaterial;
+            renderer.material.color = originalColor;
             // «десь можно вернуть оригинальный материал
         }
     }

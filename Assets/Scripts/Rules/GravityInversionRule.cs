@@ -10,6 +10,8 @@ public class GravityInversionRule : RuleBase
     private Rigidbody rb;
     private Vector3 originalGravity;
     private bool hasAppliedImpulse = false; // Флаг для одноразового импульса
+    private Material originalMaterial;
+    private Color originalColor;
 
     void Start()
     {
@@ -72,6 +74,9 @@ public class GravityInversionRule : RuleBase
     void SetObjectColor(Color color)
     {
         Renderer renderer = GetComponent<Renderer>();
+        originalMaterial = renderer.material;
+        originalColor = renderer.material.color;
+
         if (renderer != null)
         {
             // Не создаем новый материал каждый раз, используем существующий
@@ -88,6 +93,8 @@ public class GravityInversionRule : RuleBase
         if (renderer != null && renderer.material != null)
         {
             renderer.material.DisableKeyword("_EMISSION");
+            renderer.material = originalMaterial;
+            renderer.material.color = originalColor;
             // Здесь можно вернуть оригинальный цвет, если он был сохранен
         }
     }

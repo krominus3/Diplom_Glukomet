@@ -9,7 +9,9 @@ public class GrowthRule : RuleBase
     private Vector3 originalScale;
     private Vector3 targetScale;
     private bool isGrowing = false;
-    
+    private Material originalMaterial;
+    private Color originalColor;
+
     // Для коррекции позиции
     private Vector3 groundCheckOffset = new Vector3(0, 0.1f, 0); // Смещение для проверки земли
     private float groundCheckDistance = 0.2f;
@@ -104,6 +106,9 @@ public class GrowthRule : RuleBase
     void SetObjectColor(Color color)
     {
         Renderer renderer = GetComponent<Renderer>();
+        originalMaterial = renderer.material;
+        originalColor = renderer.material.color;
+
         if (renderer != null)
         {
             Material mat = new Material(Shader.Find("Standard"));
@@ -120,6 +125,8 @@ public class GrowthRule : RuleBase
         if (renderer != null && renderer.material != null)
         {
             renderer.material.DisableKeyword("_EMISSION");
+            renderer.material = originalMaterial;
+            renderer.material.color = originalColor;
         }
     }
 }

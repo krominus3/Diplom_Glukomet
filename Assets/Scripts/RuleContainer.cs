@@ -131,15 +131,22 @@ public class RuleContainer : MonoBehaviour
     // Очистить все правила
     public void ClearAllRules()
     {
-        foreach (var rule in activeRules.ToList())
+        for (int i = activeRules.Count - 1; i >= 0; i--)
         {
+            RuleBase rule = activeRules[i];
             rule.RemoveRule();
             Destroy(rule);
+
         }
+        //foreach (var rule in activeRules.ToList())
+        //{
+        //    rule.RemoveRule();
+        //    Destroy(rule);
+        //}
         activeRules.Clear();
 
         // Возвращаем оригинальные цвета
-        RestoreOriginalColors();
+        //RestoreOriginalColors();
 
         Debug.Log($"Все правила очищены с {gameObject.name}");
     }
