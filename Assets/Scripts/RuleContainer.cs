@@ -9,27 +9,6 @@ public class RuleContainer : MonoBehaviour
     
     // Список всех правил на объекте
     private List<RuleBase> activeRules = new List<RuleBase>();
-    private Dictionary<Renderer, Color> originalColors = new Dictionary<Renderer, Color>();
-    private Dictionary<Renderer, Material> originalMaterials = new Dictionary<Renderer, Material>();
-
-    void Start()
-    {
-        // Сохраняем оригинальные цвета при старте
-        SaveOriginalColors();
-    }
-
-    private void SaveOriginalColors()
-    {
-        Renderer[] renderers = GetComponentsInChildren<Renderer>();
-        foreach (var renderer in renderers)
-        {
-            if (!originalColors.ContainsKey(renderer))
-            {
-                originalColors[renderer] = renderer.material.color;
-                originalMaterials[renderer] = renderer.material;
-            }
-        }
-    }
 
     void Update()
     {
@@ -138,32 +117,20 @@ public class RuleContainer : MonoBehaviour
             Destroy(rule);
 
         }
-        //foreach (var rule in activeRules.ToList())
-        //{
-        //    rule.RemoveRule();
-        //    Destroy(rule);
-        //}
+        
         activeRules.Clear();
-
-        // Возвращаем оригинальные цвета
-        //RestoreOriginalColors();
 
         Debug.Log($"Все правила очищены с {gameObject.name}");
     }
 
-    private void RestoreOriginalColors()
+    public void RemoveLastRule()
     {
-        foreach (var kvp in originalColors)
-        {
-            Renderer renderer = kvp.Key;
-            if (renderer != null)
-            {
-                renderer.material = originalMaterials[renderer];
-                renderer.material.color = kvp.Value;
-                renderer.material.DisableKeyword("_EMISSION");
-            }
-        }
+        RuleBase rule = activeRules[^1];
+        rule.RemoveRule();
+        Destroy(rule);
+        activeRules.Remove(rule);
     }
+
 
     // Получить правило по типу
     public RuleBase GetRule<T>() where T : RuleBase

@@ -69,7 +69,7 @@ public class RuleWeapon : MonoBehaviour
 
             if (container != null)
             {
-                container.ClearAllRules();
+                container.RemoveLastRule();
             }
             else
             {

@@ -8,8 +8,8 @@ public class ElasticityRule : RuleBase
     private Collider objectCollider;
     private PhysicsMaterial originalPhysicsMaterial;
     private Rigidbody rb;
-    private Material originalMaterial;
-    private Color originalColor;
+    //private Material originalMaterial;
+    //private Color originalColor;
 
 
     void Start()
@@ -38,7 +38,7 @@ public class ElasticityRule : RuleBase
             objectCollider.material = physMat;
         }
 
-        SetObjectColor(Color.yellow);
+        SetObjectColor(Color.green);
     }
 
     //void OnCollisionEnter(Collision collision)
@@ -53,6 +53,7 @@ public class ElasticityRule : RuleBase
 
     public override void RemoveRule()
     {
+        isActive = false;
         if (objectCollider != null)
         {
             // ¬озвращаем оригинальный материал
@@ -63,29 +64,4 @@ public class ElasticityRule : RuleBase
         base.RemoveRule();
     }
 
-    void SetObjectColor(Color color)
-    {
-        Renderer renderer = GetComponent<Renderer>();
-        originalMaterial = renderer.material;
-        originalColor = renderer.material.color;
-
-
-        if (renderer != null)
-        {
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = color;
-            renderer.material = mat;
-        }
-    }
-
-    void ResetColor()
-    {
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null)
-        {
-            renderer.material = originalMaterial;
-            renderer.material.color = originalColor;
-            // «десь можно вернуть оригинальный материал
-        }
-    }
 }

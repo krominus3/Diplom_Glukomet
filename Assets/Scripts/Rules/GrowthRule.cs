@@ -9,8 +9,8 @@ public class GrowthRule : RuleBase
     private Vector3 originalScale;
     private Vector3 targetScale;
     private bool isGrowing = false;
-    private Material originalMaterial;
-    private Color originalColor;
+    //private Material originalMaterial;
+    //private Color originalColor;
 
     // Для коррекции позиции
     private Vector3 groundCheckOffset = new Vector3(0, 0.1f, 0); // Смещение для проверки земли
@@ -33,7 +33,8 @@ public class GrowthRule : RuleBase
         }
         
         // Визуальный эффект
-        SetObjectColor(Color.magenta);
+        SetObjectColor(Color.orange);
+        
         
         Debug.Log($"{gameObject.name} начинает расти до {growthMultiplier}x");
     }
@@ -92,6 +93,7 @@ public class GrowthRule : RuleBase
     
     public override void RemoveRule()
     {
+        isActive = false;
         // При удалении правила возвращаем оригинальный размер
         transform.localScale = originalScale;
         isGrowing = false;
@@ -103,30 +105,4 @@ public class GrowthRule : RuleBase
         base.RemoveRule();
     }
     
-    void SetObjectColor(Color color)
-    {
-        Renderer renderer = GetComponent<Renderer>();
-        originalMaterial = renderer.material;
-        originalColor = renderer.material.color;
-
-        if (renderer != null)
-        {
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = color;
-            mat.EnableKeyword("_EMISSION");
-            mat.SetColor("_EmissionColor", color * 0.5f);
-            renderer.material = mat;
-        }
-    }
-    
-    void ResetColor()
-    {
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null && renderer.material != null)
-        {
-            renderer.material.DisableKeyword("_EMISSION");
-            renderer.material = originalMaterial;
-            renderer.material.color = originalColor;
-        }
-    }
 }

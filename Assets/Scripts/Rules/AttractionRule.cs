@@ -14,13 +14,12 @@ public class AttractionRule : RuleBase
     //public bool attractObjectsWithRules = true; // Притягивать ли объекты с другими правилами
 
     [Header("Visual Settings")]
-    public Color activeColor = Color.green;
     public bool showDebugLines = true;
 
     private List<Rigidbody> affectedBodies = new List<Rigidbody>();
-    private Renderer objectRenderer;
-    private Color originalColor;
-    private Material originalMaterial;
+    //private Renderer objectRenderer;
+    //private Color originalColor;
+    //private Material originalMaterial;
 
     //void Start()
     //{
@@ -36,7 +35,7 @@ public class AttractionRule : RuleBase
     {
         base.ApplyRule();
         isActive = true;
-        SetObjectColor(activeColor);
+        SetObjectColor(Color.red);
     }
 
     public override void FixedUpdateRule()
@@ -98,36 +97,10 @@ public class AttractionRule : RuleBase
 
     public override void RemoveRule()
     {
+        isActive = false;
         affectedBodies.Clear();
         ResetColor();
         base.RemoveRule();
-    }
-
-    void SetObjectColor(Color color)
-    {
-        if (objectRenderer == null) objectRenderer = GetComponent<Renderer>();
-        originalMaterial = objectRenderer.material;
-        originalColor = objectRenderer.material.color;
-
-        if (objectRenderer != null)
-        {
-            if (objectRenderer.material != null)
-            {
-                objectRenderer.material.color = color;
-                objectRenderer.material.EnableKeyword("_EMISSION");
-                objectRenderer.material.SetColor("_EmissionColor", color * 0.3f);
-            }
-        }
-    }
-
-    void ResetColor()
-    {
-        if (objectRenderer != null)
-        {
-            objectRenderer.material.DisableKeyword("_EMISSION");
-            objectRenderer.material = originalMaterial;
-            objectRenderer.material.color = originalColor;
-        }
     }
 
     // Визуализация в редакторе
@@ -136,7 +109,7 @@ public class AttractionRule : RuleBase
         if (!isActive) return;
 
         // Рисуем радиус притяжения
-        Gizmos.color = activeColor;
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attractionRadius);
 
         // Рисуем линии к притягиваемым объектам
