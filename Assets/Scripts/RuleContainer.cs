@@ -29,43 +29,54 @@ public class RuleContainer : MonoBehaviour
                 rule.FixedUpdateRule();
         }
     }
-    
-    // Применить правило к объекту
-    public bool ApplyRule(RuleBase rulePrefab)
+
+    // Передать правило через ближайшие ноды
+    public void TransferRuleThroughNodes(RuleBase rule)
     {
-        if (!canAcceptRules)
+        // Находим ближайшие ноды
+        Collider[] colliders = Physics.OverlapSphere(transform.position, 10f);
+
+        foreach (var col in colliders)
         {
-            Debug.Log($"{gameObject.name} не может принимать правила");
-            return false;
+            RuleNode node = col.GetComponent<RuleNode>();
+            if (node != null)
+            {
+                // Передаем правило в ноду
+                node.TransferRule(rule, gameObject);
+                Debug.Log($"Правило {rule.ruleName} передано в ноду {node.gameObject.name}");
+            }
         }
-        
-        // Проверяем, есть ли уже такое правило
+    }
+
+    
+    public bool ApplyRule(RuleBase rulePrefab, bool transferThroughNodes = true)
+    {
+        if (!canAcceptRules) return false;
+
         RuleBase existingRule = GetRule(rulePrefab.GetType());
-        
-        if (existingRule != null)
-        {
-            Debug.Log($"Правило {rulePrefab.ruleName} уже есть на объекте");
-            return false;
-        }
-        
-        // СОЗДАЕМ НОВЫЙ КОМПОНЕНТ И КОПИРУЕМ НАСТРОЙКИ ИЗ ПРЕФАБА
+        if (existingRule != null) return false;
+
         RuleBase newRule = gameObject.AddComponent(rulePrefab.GetType()) as RuleBase;
         if (newRule != null)
         {
-            // Копируем все публичные поля из префаба в новый компонент
             CopyRuleProperties(rulePrefab, newRule);
-            
-            // Применяем правило
             newRule.ApplyRule();
             activeRules.Add(newRule);
-            
+
             Debug.Log($"Правило {rulePrefab.ruleName} добавлено на {gameObject.name}");
+
+            // Передаем правило через ноды
+            if (transferThroughNodes)
+            {
+                TransferRuleThroughNodes(newRule);
+            }
+
             return true;
         }
-        
+
         return false;
     }
-    
+
     // Метод для копирования свойств из префаба
     private void CopyRuleProperties(RuleBase source, RuleBase destination)
     {
@@ -125,10 +136,13 @@ public class RuleContainer : MonoBehaviour
 
     public void RemoveLastRule()
     {
-        RuleBase rule = activeRules[^1];
-        rule.RemoveRule();
-        Destroy(rule);
-        activeRules.Remove(rule);
+        if (activeRules.Count != 0)
+        {
+            RuleBase rule = activeRules[^1];
+            rule.RemoveRule();
+            Destroy(rule);
+            activeRules.Remove(rule);
+        }
     }
 
 

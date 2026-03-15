@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class RuleWeapon : MonoBehaviour
@@ -32,6 +33,13 @@ public class RuleWeapon : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(shootPoint.position, shootPoint.forward, out hit, maxDistance))
         {
+            RuleNode node = hit.collider.GetComponent<RuleNode>();
+            if (node != null)
+            {
+                node.ApplyRuleToObject(currentRulePrefab, hit.collider.gameObject, gameObject);
+                
+            }
+
             // Проверяем, есть ли на объекте RuleContainer
             RuleContainer container = hit.collider.GetComponent<RuleContainer>();
 
@@ -56,6 +64,8 @@ public class RuleWeapon : MonoBehaviour
             {
                 Debug.Log("Объект не может принимать правила");
             }
+
+            
         }
     }
 

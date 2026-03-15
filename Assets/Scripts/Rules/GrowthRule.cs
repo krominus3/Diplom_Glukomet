@@ -54,7 +54,7 @@ public class GrowthRule : RuleBase
         );
         
         // Корректируем позицию, чтобы объект не проваливался в землю
-        CorrectPosition(oldY);
+        //CorrectPosition(oldY);
         
         // Проверяем, достигли ли цели
         if (Vector3.Distance(transform.localScale, targetScale) < 0.01f)
@@ -99,7 +99,7 @@ public class GrowthRule : RuleBase
         isGrowing = false;
         
         // Корректируем позицию после возврата размера
-        CorrectPosition(transform.position.y);
+        //CorrectPosition(transform.position.y);
         
         ResetColor();
         base.RemoveRule();
