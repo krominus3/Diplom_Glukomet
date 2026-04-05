@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
     {
         public float crouchHeight = 1f;
         public float standHeight = 2f;
-        public float crouchTransitionSpeed = 8f; // Уменьшил для плавности
+        public float crouchTransitionSpeed = 8f;
     }
 
     [System.Serializable]
@@ -36,9 +36,9 @@ public class PlayerController : MonoBehaviour
     {
         public bool enableBob = true;
         public float walkBobSpeed = 8f;
-        public float walkBobAmount = 0.03f; // Уменьшил амплитуду
+        public float walkBobAmount = 0.03f;
         public float runBobSpeed = 12f;
-        public float runBobAmount = 0.05f; // Уменьшил амплитуду
+        public float runBobAmount = 0.05f;
     }
 
     [Header("Mouse Settings")]
@@ -65,11 +65,10 @@ public class PlayerController : MonoBehaviour
     private float standingHeight;
     private float cameraHeight;
 
-    // Разные высоты для разных состояний
     private float standingCameraY;
     private float crouchingCameraY;
-    private float currentBaseCameraY; // Текущая базовая высота (без боба)
-    private float targetBaseCameraY; // Целевая базовая высота
+    private float currentBaseCameraY;
+    private float targetBaseCameraY;
 
     private float coyoteTimeCounter;
     private float jumpBufferCounter;
@@ -85,14 +84,43 @@ public class PlayerController : MonoBehaviour
         standingHeight = controller.height;
         cameraHeight = playerCamera.transform.localPosition.y;
 
-        // Запоминаем высоты для разных состояний
         standingCameraY = cameraHeight;
-        crouchingCameraY = cameraHeight - (standingHeight - crouch.crouchHeight) / 2f; // Корректировка
+        crouchingCameraY = cameraHeight - (standingHeight - crouch.crouchHeight) / 2f;
 
         currentBaseCameraY = standingCameraY;
         targetBaseCameraY = standingCameraY;
 
         Cursor.lockState = CursorLockMode.Locked;
+
+        // Подписываемся на изменение настроек
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.OnMouseSensitivityChanged += OnMouseSensitivityChanged;
+
+            // Загружаем текущую чувствительность
+            mouseSensitivity = SettingsManager.Instance.GetMouseSensitivity();
+        }
+    }
+
+    void OnDestroy()
+    {
+        // Отписываемся при уничтожении
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.OnMouseSensitivityChanged -= OnMouseSensitivityChanged;
+        }
+    }
+
+    void OnMouseSensitivityChanged(float newSensitivity)
+    {
+        mouseSensitivity = newSensitivity;
+        Debug.Log($"PlayerController: чувствительность обновлена до {newSensitivity}");
+    }
+
+    // Публичный метод для обновления чувствительности извне
+    public void UpdateMouseSensitivity(float newSensitivity)
+    {
+        mouseSensitivity = newSensitivity;
     }
 
     void Update()
@@ -104,17 +132,14 @@ public class PlayerController : MonoBehaviour
         HandleGravity();
         HandleJump();
 
-        // Плавно изменяем базовую высоту камеры (приседание)
         currentBaseCameraY = Mathf.Lerp(currentBaseCameraY, targetBaseCameraY, crouch.crouchTransitionSpeed * Time.deltaTime);
 
-        // Применяем боб поверх базовой высоты
         float bobOffset = 0f;
         if (headBob.enableBob && controller.isGrounded && currentSpeed > 0.1f)
         {
             bobOffset = CalculateHeadBob();
         }
 
-        // Устанавливаем финальную позицию камеры
         Vector3 cameraPos = playerCamera.transform.localPosition;
         cameraPos.y = currentBaseCameraY + bobOffset;
         playerCamera.transform.localPosition = cameraPos;
@@ -138,46 +163,35 @@ public class PlayerController : MonoBehaviour
 
     void HandleCrouchInput()
     {
-        // Приседание по удержанию (плавное)
         wantsToCrouch = Input.GetKey(KeyCode.LeftControl);
 
-        // Меняем цель плавно
         if (wantsToCrouch != isCrouching)
         {
             isCrouching = wantsToCrouch;
 
-            // Меняем целевую высоту капсулы
             float targetHeight = isCrouching ? crouch.crouchHeight : standingHeight;
             controller.height = Mathf.Lerp(controller.height, targetHeight, crouch.crouchTransitionSpeed * Time.deltaTime);
 
-            // Корректируем центр капсулы
             float centerY = controller.height / 2f;
             controller.center = new Vector3(0, centerY, 0);
 
-            // Меняем целевую базовую высоту камеры
             targetBaseCameraY = isCrouching ? crouchingCameraY : standingCameraY;
         }
 
-        // Продолжаем плавно изменять высоту капсулы пока она не достигнет цели
         float targetHeight2 = isCrouching ? crouch.crouchHeight : standingHeight;
         controller.height = Mathf.Lerp(controller.height, targetHeight2, crouch.crouchTransitionSpeed * Time.deltaTime);
 
-        // Корректируем центр капсулы
         float centerY2 = controller.height / 2f;
         controller.center = new Vector3(0, centerY2, 0);
     }
 
     float CalculateHeadBob()
     {
-        // Определяем скорость качания
         bool isRunning = Input.GetKey(KeyCode.LeftShift) && !isCrouching;
         float bobSpeed = isRunning ? headBob.runBobSpeed : headBob.walkBobSpeed;
         float bobAmount = isRunning ? headBob.runBobAmount : headBob.walkBobAmount;
 
-        // Обновляем таймер
         bobTimer += Time.deltaTime * bobSpeed;
-
-        // Возвращаем смещение по синусоиде
         return Mathf.Sin(bobTimer) * bobAmount;
     }
 
@@ -221,7 +235,6 @@ public class PlayerController : MonoBehaviour
             currentSpeed = Mathf.MoveTowards(currentSpeed, targetSpeed, acceleration * Time.deltaTime);
             moveDirection = targetDirection * currentSpeed;
 
-            // Продолжаем тикать таймер боба если движемся
             if (!headBob.enableBob)
                 bobTimer += Time.deltaTime;
         }
@@ -229,8 +242,6 @@ public class PlayerController : MonoBehaviour
         {
             currentSpeed = Mathf.MoveTowards(currentSpeed, 0, deceleration * Time.deltaTime);
             moveDirection = Vector3.zero;
-
-            // Сбрасываем таймер когда стоим
             bobTimer = 0;
         }
     }
