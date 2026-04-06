@@ -17,7 +17,7 @@ public class RuleInventory : MonoBehaviour
     {
         get
         {
-            return availableRules[currentRuleIndex].ruleName;
+            return availableRules.Count != 0 ? availableRules[currentRuleIndex].ruleName : "Нет правил";
         }
     }
 
@@ -33,25 +33,27 @@ public class RuleInventory : MonoBehaviour
     void Update()
     {
         // Переключение правил колесиком мыши
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0 && availableRules.Count > 0)
+        if (availableRules.Count != 0)
         {
-            if (scroll > 0)
-                NextRule();
-            else
-                PreviousRule();
-        }
-
-        // Переключение цифрами 1-4
-        for (int i = 0; i < availableRules.Count && i < 9; i++)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+            float scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (scroll != 0 && availableRules.Count > 0)
             {
-                SelectRule(i);
+                if (scroll > 0)
+                    NextRule();
+                else
+                    PreviousRule();
+            }
+
+            // Переключение цифрами 1-4
+            for (int i = 0; i < availableRules.Count && i < 9; i++)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                {
+                    SelectRule(i);
+                }
             }
         }
 
-        
     }
 
     // Добавить новое правило

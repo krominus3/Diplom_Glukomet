@@ -8,10 +8,19 @@ public class ButtonDoor : MonoBehaviour
     [Header("Button Settings")]
     public bool staysPressed = false; // Остается ли кнопка нажатой
     public float autoCloseDelay = 2f; // Задержка перед автоматическим закрытием
+    public Color onDoorActiveColor;
 
+    private Color baseColor;
     private int objectsOnButton = 0;
     private bool isDoorOpen = false;
     private float closeTimer = 0f;
+    private Renderer buttonRend;
+
+    private void Start()
+    {
+        buttonRend = GetComponent<Renderer>();
+        baseColor = buttonRend.material.color;
+    }
 
     void Update()
     {
@@ -34,6 +43,7 @@ public class ButtonDoor : MonoBehaviour
 
         if (targetDoor != null && !isDoorOpen)
         {
+            buttonRend.material.color = onDoorActiveColor;
             targetDoor.Open();
             isDoorOpen = true;
             closeTimer = 0f;
@@ -54,6 +64,7 @@ public class ButtonDoor : MonoBehaviour
             // Кнопка отпускается - закрываем дверь если нет других объектов
             if (objectsOnButton <= 0 && isDoorOpen && targetDoor != null)
             {
+                buttonRend.material.color = baseColor;
                 targetDoor.Close();
                 isDoorOpen = false;
             }
