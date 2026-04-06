@@ -1,4 +1,4 @@
-using UnityEngine;
+п»їusing UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
@@ -63,7 +63,7 @@ public class LevelLoader : MonoBehaviour
 
             hasTriggered = true;
 
-            // Сохраняем данные игрока ПЕРЕД загрузкой
+            // РЎРѕС…СЂР°РЅСЏРµРј РґР°РЅРЅС‹Рµ РёРіСЂРѕРєР° РџР•Р Р•Р” Р·Р°РіСЂСѓР·РєРѕР№
             if (savePlayerPosition || savePlayerRotation)
             {
                 SavePlayerData();
@@ -78,11 +78,16 @@ public class LevelLoader : MonoBehaviour
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
-            PlayerData.SavePlayerData(playerObj.transform);
+            // РџРѕР»СѓС‡Р°РµРј РёРјСЏ С‚РµРєСѓС‰РµР№ СЃС†РµРЅС‹
+            string currentScene = SceneManager.GetActiveScene().name;
+
+            // РЎРѕС…СЂР°РЅСЏРµРј РґР°РЅРЅС‹Рµ (РїРµСЂРµРґР°РµРј РѕР±Р° РїР°СЂР°РјРµС‚СЂР°)
+            PlayerData.SavePlayerData(playerObj.transform, currentScene);
+            Debug.Log($"рџ’ѕ Р”Р°РЅРЅС‹Рµ СЃРѕС…СЂР°РЅРµРЅС‹ РїРµСЂРµРґ Р·Р°РіСЂСѓР·РєРѕР№ СѓСЂРѕРІРЅСЏ {targetSceneName}");
         }
         else
         {
-            Debug.LogWarning("Игрок не найден для сохранения данных!");
+            Debug.LogWarning("РРіСЂРѕРє РЅРµ РЅР°Р№РґРµРЅ РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РґР°РЅРЅС‹С…!");
         }
     }
 
@@ -92,20 +97,20 @@ public class LevelLoader : MonoBehaviour
 
         originalTimeScale = Time.timeScale;
 
-        // Останавливаем время
+        // РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј РІСЂРµРјСЏ
         if (stopTimeOnTrigger)
         {
             Time.timeScale = timeScaleOnTrigger;
         }
 
-        // Отключаем скрипты игрока
+        // РћС‚РєР»СЋС‡Р°РµРј СЃРєСЂРёРїС‚С‹ РёРіСЂРѕРєР°
         if (disablePlayerScripts)
         {
             if (playerController != null) playerController.enabled = false;
             if (ruleWeapon != null) ruleWeapon.enabled = false;
         }
 
-        // Эффекты
+        // Р­С„С„РµРєС‚С‹
         if (triggerSound != null)
         {
             AudioSource.PlayClipAtPoint(triggerSound, transform.position);
@@ -116,7 +121,7 @@ public class LevelLoader : MonoBehaviour
             Instantiate(triggerEffect, transform.position, Quaternion.identity);
         }
 
-        // Показываем плашку загрузки
+        // РџРѕРєР°Р·С‹РІР°РµРј РїР»Р°С€РєСѓ Р·Р°РіСЂСѓР·РєРё
         if (loadingPanel != null)
         {
             loadingPanel.SetActive(true);
@@ -140,10 +145,10 @@ public class LevelLoader : MonoBehaviour
 
         if (loadingText != null)
         {
-            loadingText.text = "ЗАГРУЗКА...";
+            loadingText.text = "Р—РђР“Р РЈР—РљРђ...";
         }
 
-        // Задержка
+        // Р—Р°РґРµСЂР¶РєР°
         float waitTime = 0;
         while (waitTime < loadDelay)
         {
@@ -151,7 +156,7 @@ public class LevelLoader : MonoBehaviour
             yield return null;
         }
 
-        // Загружаем уровень
+        // Р—Р°РіСЂСѓР¶Р°РµРј СѓСЂРѕРІРµРЅСЊ
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(targetSceneName);
         asyncLoad.allowSceneActivation = false;
 
@@ -166,14 +171,14 @@ public class LevelLoader : MonoBehaviour
 
             if (loadingText != null)
             {
-                loadingText.text = $"ЗАГРУЗКА... {(progress * 100):F0}%";
+                loadingText.text = $"Р—РђР“Р РЈР—РљРђ... {(progress * 100):F0}%";
             }
 
             if (asyncLoad.progress >= 0.9f)
             {
                 if (loadingText != null)
                 {
-                    loadingText.text = "НАЖМИТЕ ЛЮБУЮ КЛАВИШУ";
+                    loadingText.text = "РќРђР–РњРРўР• Р›Р®Р‘РЈР® РљР›РђР’РРЁРЈ";
                 }
 
                 if (Input.anyKeyDown)

@@ -1,261 +1,112 @@
-using TMPro;
-using UnityEngine;
+п»їusing UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
-    [Header("Panel References")]
-    public GameObject mainMenuPanel;      // Панель с главными кнопками
-    public GameObject settingsPanel;      // Панель с настройками
+    [Header("Buttons")]
+    public Button newGameButton;
+    public Button continueButton;
+    public Button quitButton;
 
-    [Header("Settings References")]
-    public Slider musicVolumeSlider;      // Ползунок громкости музыки
-    public Slider sfxVolumeSlider;        // Ползунок громкости звуков
-    public Slider mouseSensitivitySlider; // Ползунок чувствительности мыши
-    public TextMeshProUGUI musicVolumeText;          // Текст с значением громкости музыки
-    public TextMeshProUGUI sfxVolumeText;            // Текст с значением громкости звуков
-    public TextMeshProUGUI mouseSensitivityText;     // Текст с значением чувствительности мыши
+    [Header("UI")]
+    public GameObject mainMenuPanel;
+    public GameObject loadingPanel;
+    public TMPro.TextMeshProUGUI loadingText;
+    public Slider loadingProgressBar;
 
-    [Header("Scene Settings")]
-    public string gameSceneName = "Game"; // Имя сцены игры
+    [Header("Loading Settings")]
+    public string firstLevelName = "Level1";
 
-    [Header("Audio")]
-    public AudioSource clickSound;        // Звук нажатия на кнопку
+    private bool isLoading = false;
 
     void Start()
     {
-        // Показываем главное меню, скрываем настройки
-        ShowMainMenu();
+        if (newGameButton != null)
+            newGameButton.onClick.AddListener(NewGame);
 
-        // Загружаем настройки из SettingsManager
-        LoadSettingsFromPlayerPrefs();
-        LoadSettingsFromManager();
+        if (continueButton != null)
+            continueButton.onClick.AddListener(ContinueGame);
 
-        // Добавляем слушатели для ползунков
-        if (musicVolumeSlider != null)
-            musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+        if (quitButton != null)
+            quitButton.onClick.AddListener(QuitGame);
 
-        if (sfxVolumeSlider != null)
-            sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
+        UpdateContinueButton();
 
-        if (mouseSensitivitySlider != null)
-            mouseSensitivitySlider.onValueChanged.AddListener(OnMouseSensitivityChanged);
+        if (loadingPanel != null)
+            loadingPanel.SetActive(false);
+        if (mainMenuPanel != null)
+            mainMenuPanel.SetActive(true);
     }
 
-    void OnDestroy()
+    void UpdateContinueButton()
     {
-        // Отписываемся от событий SettingsManager
-        if (SettingsManager.Instance != null)
+        if (continueButton != null)
         {
-            SettingsManager.Instance.OnMusicVolumeChanged -= OnMusicVolumeChangedFromManager;
-            SettingsManager.Instance.OnSFXVolumeChanged -= OnSFXVolumeChangedFromManager;
-            SettingsManager.Instance.OnMouseSensitivityChanged -= OnMouseSensitivityChangedFromManager;
+            continueButton.interactable = PlayerData.HasSave();
         }
     }
 
-    // ===== НАВИГАЦИЯ =====
-
-    public void ShowMainMenu()
+    public void NewGame()
     {
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
-
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
+        if (isLoading) return;
+        PlayerData.ClearSave();
+        StartCoroutine(LoadLevel(firstLevelName));
     }
 
-    public void ShowSettings()
+    public void ContinueGame()
     {
-        PlayClickSound();
+        if (isLoading) return;
 
+        if (PlayerData.LoadSavedData())
+        {
+            StartCoroutine(LoadLevel(PlayerData.currentLevel));
+        }
+        else
+        {
+            NewGame();
+        }
+    }
+
+    IEnumerator LoadLevel(string levelName)
+    {
+        isLoading = true;
+
+        // РџРѕРєР°Р·С‹РІР°РµРј Р·Р°РіСЂСѓР·РєСѓ
+        if (loadingPanel != null)
+            loadingPanel.SetActive(true);
         if (mainMenuPanel != null)
             mainMenuPanel.SetActive(false);
 
-        if (settingsPanel != null)
-            settingsPanel.SetActive(true);
+        // РќР°С‡РёРЅР°РµРј Р°СЃРёРЅС…СЂРѕРЅРЅСѓСЋ Р·Р°РіСЂСѓР·РєСѓ
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(levelName);
+        asyncLoad.allowSceneActivation = false;
+
+        // РћР±РЅРѕРІР»СЏРµРј РїСЂРѕРіСЂРµСЃСЃ
+        while (asyncLoad.progress < 0.9f)
+        {
+            float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
+
+            if (loadingText != null)
+                loadingText.text = $"Р—РђР“Р РЈР—РљРђ... {(progress * 100):F0}%";
+
+            if (loadingProgressBar != null)
+                loadingProgressBar.value = progress;
+
+            yield return null;
+        }
+
+        // Р—Р°РіСЂСѓР·РєР° Р·Р°РІРµСЂС€РµРЅР°, Р°РєС‚РёРІРёСЂСѓРµРј СЃС†РµРЅСѓ
+        asyncLoad.allowSceneActivation = true;
+        isLoading = false;
     }
 
-    public void HideSettings()
+    public void QuitGame()
     {
-        SaveSettingsToManager();
-        PlayClickSound();
-
-        if (settingsPanel != null)
-            settingsPanel.SetActive(false);
-
-        if (mainMenuPanel != null)
-            mainMenuPanel.SetActive(true);
-    }
-
-    // ===== КНОПКИ ГЛАВНОГО МЕНЮ =====
-
-    public void OnStartGame()
-    {
-        PlayClickSound();
-        Debug.Log("Загрузка игры...");
-        SceneManager.LoadScene(gameSceneName);
-    }
-
-    public void OnContinue()
-    {
-        PlayClickSound();
-        Debug.Log("Продолжить игру (пока не реализовано)");
-        // Здесь будет логика загрузки сохранения
-    }
-
-    public void OnSettings()
-    {
-        PlayClickSound();
-        ShowSettings();
-    }
-
-    public void OnExitGame()
-    {
-        PlayClickSound();
-        Debug.Log("Выход из игры...");
-
+        Application.Quit();
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
 #endif
-    }
-
-    // ===== НАСТРОЙКИ ЧЕРЕЗ SETTINGSMANAGER =====
-
-    void LoadSettingsFromManager()
-    {
-        if (SettingsManager.Instance == null)
-        {
-            Debug.LogWarning("SettingsManager не найден! Загружаю из PlayerPrefs");
-            LoadSettingsFromPlayerPrefs();
-            return;
-        }
-
-        // Загружаем значения из SettingsManager
-        if (musicVolumeSlider != null)
-            musicVolumeSlider.value = SettingsManager.Instance.GetMusicVolume();
-
-        if (sfxVolumeSlider != null)
-            sfxVolumeSlider.value = SettingsManager.Instance.GetSFXVolume();
-
-        if (mouseSensitivitySlider != null)
-            mouseSensitivitySlider.value = SettingsManager.Instance.GetMouseSensitivity();
-
-        // Подписываемся на изменения в SettingsManager
-        SettingsManager.Instance.OnMusicVolumeChanged += OnMusicVolumeChangedFromManager;
-        SettingsManager.Instance.OnSFXVolumeChanged += OnSFXVolumeChangedFromManager;
-        SettingsManager.Instance.OnMouseSensitivityChanged += OnMouseSensitivityChangedFromManager;
-    }
-
-    void LoadSettingsFromPlayerPrefs()
-    {
-        if (musicVolumeSlider != null)
-        {
-            float savedMusicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
-            musicVolumeSlider.value = savedMusicVolume;
-            OnMusicVolumeChanged(savedMusicVolume);
-        }
-
-        if (sfxVolumeSlider != null)
-        {
-            float savedSFXVolume = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
-            sfxVolumeSlider.value = savedSFXVolume;
-            OnSFXVolumeChanged(savedSFXVolume);
-        }
-
-        if (mouseSensitivitySlider != null)
-        {
-            float savedSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 2f);
-            mouseSensitivitySlider.value = savedSensitivity;
-            OnMouseSensitivityChanged(savedSensitivity);
-        }
-    }
-
-    void SaveSettingsToManager()
-    {
-        if (SettingsManager.Instance == null)
-        {
-            // Если нет SettingsManager, сохраняем в PlayerPrefs
-            if (musicVolumeSlider != null)
-                PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider.value);
-
-            if (sfxVolumeSlider != null)
-                PlayerPrefs.SetFloat("SFXVolume", sfxVolumeSlider.value);
-
-            if (mouseSensitivitySlider != null)
-                PlayerPrefs.SetFloat("MouseSensitivity", mouseSensitivitySlider.value);
-
-            PlayerPrefs.Save();
-            Debug.Log("Настройки сохранены в PlayerPrefs");
-            return;
-        }
-
-        // Сохраняем через SettingsManager
-        if (musicVolumeSlider != null)
-            SettingsManager.Instance.SetMusicVolume(musicVolumeSlider.value);
-
-        if (sfxVolumeSlider != null)
-            SettingsManager.Instance.SetSFXVolume(sfxVolumeSlider.value);
-
-        if (mouseSensitivitySlider != null)
-            SettingsManager.Instance.SetMouseSensitivity(mouseSensitivitySlider.value);
-    }
-
-    // ===== ОБРАБОТЧИКИ ИЗМЕНЕНИЙ ПОЛЗУНКОВ =====
-
-    void OnMusicVolumeChanged(float value)
-    {
-        if (musicVolumeText != null)
-            musicVolumeText.text = Mathf.RoundToInt(value * 100).ToString();
-    }
-
-    void OnSFXVolumeChanged(float value)
-    {
-        if (sfxVolumeText != null)
-            sfxVolumeText.text = Mathf.RoundToInt(value * 100).ToString();
-
-        // Применяем громкость звуков эффектов для обратной связи
-        if (clickSound != null)
-            clickSound.volume = value;
-    }
-
-    void OnMouseSensitivityChanged(float value)
-    {
-        if (mouseSensitivityText != null)
-            mouseSensitivityText.text = value.ToString("F1");
-    }
-
-    // ===== ОБРАБОТЧИКИ ИЗМЕНЕНИЙ ИЗ SETTINGSMANAGER =====
-
-    void OnMusicVolumeChangedFromManager(float value)
-    {
-        if (musicVolumeSlider != null && Mathf.Abs(musicVolumeSlider.value - value) > 0.01f)
-            musicVolumeSlider.value = value;
-    }
-
-    void OnSFXVolumeChangedFromManager(float value)
-    {
-        if (sfxVolumeSlider != null && Mathf.Abs(sfxVolumeSlider.value - value) > 0.01f)
-            sfxVolumeSlider.value = value;
-    }
-
-    void OnMouseSensitivityChangedFromManager(float value)
-    {
-        if (mouseSensitivitySlider != null && Mathf.Abs(mouseSensitivitySlider.value - value) > 0.01f)
-            mouseSensitivitySlider.value = value;
-    }
-
-    // ===== ЗВУК НАЖАТИЯ =====
-
-    void PlayClickSound()
-    {
-        if (clickSound != null)
-        {
-            float volume = SettingsManager.Instance != null ? SettingsManager.Instance.GetSFXVolume() : 1f;
-            clickSound.volume = volume;
-            clickSound.Play();
-        }
     }
 }

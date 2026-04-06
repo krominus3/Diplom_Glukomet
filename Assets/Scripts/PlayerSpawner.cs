@@ -1,15 +1,20 @@
-using UnityEngine;
+п»їusing UnityEngine;
 
 public class PlayerSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    public bool useSavedData = true; // Использовать сохраненные данные
-    public bool useSavedPosition = false;
-    public Transform defaultSpawnPoint; // Точка спавна по умолчанию
+    public bool useSavedData = true;
+    public Transform defaultSpawnPoint;
 
-    [Header("Fallback Settings")]
+    [Header("Fallback")]
     public Vector3 fallbackPosition = Vector3.zero;
     public Vector3 fallbackRotation = Vector3.zero;
+
+    [Header("Debug")]
+    public bool showSpawnMessage = true;
+
+    private GameObject player;
+    private bool hasSpawned = false;
 
     void Start()
     {
@@ -18,68 +23,73 @@ public class PlayerSpawner : MonoBehaviour
 
     void SpawnPlayer()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        player = GameObject.FindGameObjectWithTag("Player");
 
         if (player == null)
         {
-            Debug.LogError("Игрок не найден в сцене!");
+            Debug.LogError("вќЊ РРіСЂРѕРє РЅРµ РЅР°Р№РґРµРЅ!");
             return;
+        }
+
+        // Р’РђР–РќРћ: РЎРЅР°С‡Р°Р»Р° Р·Р°РіСЂСѓР¶Р°РµРј СЃРѕС…СЂР°РЅРµРЅРЅС‹Рµ РґР°РЅРЅС‹Рµ, РµСЃР»Рё РёС… РЅРµС‚
+        if (useSavedData && !PlayerData.hasData)
+        {
+            // РџС‹С‚Р°РµРјСЃСЏ Р·Р°РіСЂСѓР·РёС‚СЊ РёР· PlayerPrefs
+            PlayerData.LoadSavedData();
         }
 
         if (useSavedData && PlayerData.hasData)
         {
-            if (useSavedPosition)
-            {
-                // Восстанавливаем позицию
-                player.transform.position = PlayerData.lastPosition;
-                Debug.Log($"Позиция игрока восстановлена: {PlayerData.lastPosition}");
+            // Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїРѕР·РёС†РёСЋ
+            player.transform.position = PlayerData.lastPosition;
+            Debug.Log($"рџ“Ќ РџРѕР·РёС†РёСЏ РёРіСЂРѕРєР° РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅР°: {PlayerData.lastPosition}");
 
-            }
-            else
-            {
-                player.transform.position = defaultSpawnPoint.position;
-            }
+            // Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїРѕРІРѕСЂРѕС‚
+            player.transform.rotation = PlayerData.lastRotation;
+            Debug.Log($"рџ”„ РџРѕРІРѕСЂРѕС‚ РёРіСЂРѕРєР° РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅ: {PlayerData.lastRotation.eulerAngles}");
 
-                // Восстанавливаем поворот
-                player.transform.rotation = PlayerData.lastRotation;
-            Debug.Log($"Поворот игрока восстановлен: {PlayerData.lastRotation.eulerAngles}");
-
-            // Очищаем данные, чтобы не использовать их повторно
-            PlayerData.ClearData();
+            if (showSpawnMessage)
+                Debug.Log($"вњ… РРіСЂРѕРє Р·Р°СЃРїР°РІРЅРµРЅ РЅР° СЃРѕС…СЂР°РЅРµРЅРЅРѕР№ РїРѕР·РёС†РёРё");
         }
         else if (defaultSpawnPoint != null)
         {
-            // Используем точку спавна по умолчанию
             player.transform.position = defaultSpawnPoint.position;
             player.transform.rotation = defaultSpawnPoint.rotation;
-            Debug.Log($"Игрок заспавнен на точке: {defaultSpawnPoint.name}");
+            Debug.Log($"рџ“Ќ РРіСЂРѕРє Р·Р°СЃРїР°РІРЅРµРЅ РЅР° С‚РѕС‡РєРµ: {defaultSpawnPoint.name}");
         }
         else
         {
-            // Используем запасные координаты
             player.transform.position = fallbackPosition;
             player.transform.rotation = Quaternion.Euler(fallbackRotation);
-            Debug.Log($"Игрок заспавнен на запасной позиции: {fallbackPosition}");
+            Debug.Log($"рџ“Ќ РРіСЂРѕРє Р·Р°СЃРїР°РІРЅРµРЅ РЅР° Р·Р°РїР°СЃРЅРѕР№ РїРѕР·РёС†РёРё: {fallbackPosition}");
+        }
+
+        hasSpawned = true;
+    }
+
+    // РњРµС‚РѕРґ РґР»СЏ РїСЂРёРЅСѓРґРёС‚РµР»СЊРЅРѕРіРѕ СЃРїР°РІРЅР° РЅР° СЃРѕС…СЂР°РЅРµРЅРЅРѕР№ РїРѕР·РёС†РёРё
+    public void RespawnAtSavedPosition()
+    {
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player");
+
+        if (player != null && PlayerData.hasData)
+        {
+            player.transform.position = PlayerData.lastPosition;
+            player.transform.rotation = PlayerData.lastRotation;
+            Debug.Log("рџ”„ РРіСЂРѕРє С‚РµР»РµРїРѕСЂС‚РёСЂРѕРІР°РЅ РЅР° СЃРѕС…СЂР°РЅРµРЅРЅСѓСЋ РїРѕР·РёС†РёСЋ");
         }
     }
 
-    // Метод для ручного обновления позиции игрока
+    // РњРµС‚РѕРґ РґР»СЏ СЂСѓС‡РЅРѕРіРѕ РѕР±РЅРѕРІР»РµРЅРёСЏ РїРѕР·РёС†РёРё
     public void UpdatePlayerPosition(Vector3 newPosition)
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player");
+
         if (player != null)
         {
             player.transform.position = newPosition;
-        }
-    }
-
-    // Метод для ручного обновления поворота игрока
-    public void UpdatePlayerRotation(Quaternion newRotation)
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            player.transform.rotation = newRotation;
         }
     }
 
