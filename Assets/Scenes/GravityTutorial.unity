@@ -1133,7 +1133,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3267252419826270692, guid: 823c9245ce5c1424e949877ecfcb2df7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 5.81
+      value: 5.8100014
       objectReference: {fileID: 0}
     - target: {fileID: 3267252419826270692, guid: 823c9245ce5c1424e949877ecfcb2df7, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1141,7 +1141,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3267252419826270692, guid: 823c9245ce5c1424e949877ecfcb2df7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 3.329
+      value: 1.3290002
       objectReference: {fileID: 0}
     - target: {fileID: 3267252419826270692, guid: 823c9245ce5c1424e949877ecfcb2df7, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6860,6 +6860,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
   useSavedData: 1
+  useSavedPosition: 0
   defaultSpawnPoint: {fileID: 1951092056}
   fallbackPosition: {x: 0, y: 0, z: 0}
   fallbackRotation: {x: 0, y: 0, z: 0}

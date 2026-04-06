@@ -2442,7 +2442,7 @@ MonoBehaviour:
   musicVolumeText: {fileID: 383910271}
   sfxVolumeText: {fileID: 1158132551}
   mouseSensitivityText: {fileID: 1782562880}
-  gameSceneName: SampleScene
+  gameSceneName: GrowthTutorial
   clickSound: {fileID: 348828140}
 --- !u!1 &1219379321
 GameObject:

@@ -4,6 +4,7 @@ public class PlayerSpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
     public bool useSavedData = true; // Использовать сохраненные данные
+    public bool useSavedPosition = false;
     public Transform defaultSpawnPoint; // Точка спавна по умолчанию
 
     [Header("Fallback Settings")]
@@ -27,12 +28,20 @@ public class PlayerSpawner : MonoBehaviour
 
         if (useSavedData && PlayerData.hasData)
         {
-            // Восстанавливаем позицию
-            player.transform.position = PlayerData.lastPosition;
-            Debug.Log($"Позиция игрока восстановлена: {PlayerData.lastPosition}");
+            if (useSavedPosition)
+            {
+                // Восстанавливаем позицию
+                player.transform.position = PlayerData.lastPosition;
+                Debug.Log($"Позиция игрока восстановлена: {PlayerData.lastPosition}");
 
-            // Восстанавливаем поворот
-            player.transform.rotation = PlayerData.lastRotation;
+            }
+            else
+            {
+                player.transform.position = defaultSpawnPoint.position;
+            }
+
+                // Восстанавливаем поворот
+                player.transform.rotation = PlayerData.lastRotation;
             Debug.Log($"Поворот игрока восстановлен: {PlayerData.lastRotation.eulerAngles}");
 
             // Очищаем данные, чтобы не использовать их повторно
