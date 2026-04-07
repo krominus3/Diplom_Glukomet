@@ -208,7 +208,7 @@ public class PauseMenu : MonoBehaviour
         isPaused = false;
 
         // Перезагружаем текущую сцену
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SaveManager.Instance.HardRestart();
     }
 
     public void OnQuitGame()

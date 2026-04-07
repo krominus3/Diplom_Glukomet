@@ -8,7 +8,7 @@ public class SaveTrigger : MonoBehaviour
     public bool showSaveMessage = true;
     public float messageDuration = 2f;
 
-    [Header("UI (опционально)")]
+    [Header("UI")]
     public GameObject saveNotificationPanel;
     public TMPro.TextMeshProUGUI saveNotificationText;
 
@@ -20,12 +20,12 @@ public class SaveTrigger : MonoBehaviour
         {
             SaveGame();
             hasSaved = true;
+            Destroy(gameObject);
         }
     }
 
     void SaveGame()
     {
-        // Находим игрока
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player == null)
         {
@@ -33,17 +33,23 @@ public class SaveTrigger : MonoBehaviour
             return;
         }
 
-        // Получаем имя текущей сцены
         string currentScene = SceneManager.GetActiveScene().name;
 
-        // Сохраняем данные
-        PlayerData.SavePlayerData(player.transform, currentScene);
+        // Исправлено: используем SavePlayerPosition вместо SavePlayerData
+        PlayerData.SavePlayerPosition(player.transform);
+        PlayerData.currentLevel = currentScene;
+        PlayerData.SaveLevel();
 
-        // Показываем уведомление
+        // Сохраняем правила
+        RuleInventory ruleInventory = FindFirstObjectByType<RuleInventory>();
+        if (ruleInventory != null)
+        {
+            PlayerData.SavePlayerRules(ruleInventory);
+        }
+
         ShowSaveNotification();
 
         Debug.Log($"Игра сохранена на уровне '{currentScene}'");
-        Destroy(gameObject);
     }
 
     void ShowSaveNotification()
@@ -56,7 +62,7 @@ public class SaveTrigger : MonoBehaviour
 
         if (saveNotificationText != null)
         {
-            saveNotificationText.text = "ИГРА СОХРАНЕНА!";
+            saveNotificationText.text = "ИГРА СОХРАНЕНА";
         }
     }
 

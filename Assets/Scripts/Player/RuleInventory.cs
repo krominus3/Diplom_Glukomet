@@ -9,8 +9,6 @@ public class RuleInventory : MonoBehaviour
     [Header("Weapon Reference")]
     public RuleWeapon weapon;
 
-
-    // Текущее выбранное правило
     private int currentRuleIndex = 0;
 
     public string GetCurrentRuleName
@@ -23,7 +21,6 @@ public class RuleInventory : MonoBehaviour
 
     void Start()
     {
-        // При старте выбираем первое правило, если есть
         if (availableRules.Count > 0 && weapon != null)
         {
             weapon.SetCurrentRule(availableRules[0]);
@@ -32,11 +29,10 @@ public class RuleInventory : MonoBehaviour
 
     void Update()
     {
-        // Переключение правил колесиком мыши
         if (availableRules.Count != 0)
         {
             float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if (scroll != 0 && availableRules.Count > 0)
+            if (scroll != 0)
             {
                 if (scroll > 0)
                     NextRule();
@@ -44,7 +40,6 @@ public class RuleInventory : MonoBehaviour
                     PreviousRule();
             }
 
-            // Переключение цифрами 1-4
             for (int i = 0; i < availableRules.Count && i < 9; i++)
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1 + i))
@@ -53,10 +48,8 @@ public class RuleInventory : MonoBehaviour
                 }
             }
         }
-
     }
 
-    // Добавить новое правило
     public void AddRule(RuleBase rule)
     {
         if (rule == null) return;
@@ -66,7 +59,6 @@ public class RuleInventory : MonoBehaviour
             availableRules.Add(rule);
             Debug.Log($"Получено новое правило: {rule.ruleName}");
 
-            // Если это первое правило, автоматически выбираем его
             if (availableRules.Count == 1 && weapon != null)
             {
                 weapon.SetCurrentRule(rule);
@@ -74,7 +66,6 @@ public class RuleInventory : MonoBehaviour
         }
     }
 
-    // Удалить правило
     public void RemoveRule(RuleBase rule)
     {
         if (availableRules.Contains(rule))
@@ -82,7 +73,6 @@ public class RuleInventory : MonoBehaviour
             availableRules.Remove(rule);
             Debug.Log($"Правило {rule.ruleName} удалено");
 
-            // Если удалили текущее правило, выбираем другое
             if (weapon != null && weapon.currentRulePrefab == rule)
             {
                 if (availableRules.Count > 0)
@@ -93,7 +83,6 @@ public class RuleInventory : MonoBehaviour
         }
     }
 
-    // Удалить правило по индексу
     public void RemoveRule(int index)
     {
         if (index >= 0 && index < availableRules.Count)
@@ -102,7 +91,6 @@ public class RuleInventory : MonoBehaviour
         }
     }
 
-    // Очистить все правила
     public void ClearAllRules()
     {
         availableRules.Clear();
@@ -113,7 +101,6 @@ public class RuleInventory : MonoBehaviour
         Debug.Log("Все правила удалены");
     }
 
-    // Выбрать следующее правило
     public void NextRule()
     {
         if (availableRules.Count == 0) return;
@@ -122,7 +109,6 @@ public class RuleInventory : MonoBehaviour
         SelectRule(currentRuleIndex);
     }
 
-    // Выбрать предыдущее правило
     public void PreviousRule()
     {
         if (availableRules.Count == 0) return;
@@ -134,7 +120,6 @@ public class RuleInventory : MonoBehaviour
         SelectRule(currentRuleIndex);
     }
 
-    // Выбрать правило по индексу
     public void SelectRule(int index)
     {
         if (index >= 0 && index < availableRules.Count && weapon != null)
@@ -142,11 +127,9 @@ public class RuleInventory : MonoBehaviour
             currentRuleIndex = index;
             weapon.SetCurrentRule(availableRules[index]);
             Debug.Log($"Выбрано правило: {availableRules[index].ruleName}");
-
         }
     }
 
-    // Выбрать правило по типу
     public void SelectRule<T>() where T : RuleBase
     {
         for (int i = 0; i < availableRules.Count; i++)
@@ -159,11 +142,25 @@ public class RuleInventory : MonoBehaviour
         }
     }
 
-    // Получить все правила
+    public void SetCurrentRule(RuleBase rule)
+    {
+        for (int i = 0; i < availableRules.Count; i++)
+        {
+            if (availableRules[i] == rule)
+            {
+                SelectRule(i);
+                return;
+            }
+        }
+
+        if (availableRules.Count > 0)
+        {
+            SelectRule(0);
+        }
+    }
+
     public List<RuleBase> GetAllRules()
     {
         return new List<RuleBase>(availableRules);
     }
-
-    
 }

@@ -78,16 +78,13 @@ public class LevelLoader : MonoBehaviour
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
-            // Получаем имя текущей сцены
             string currentScene = SceneManager.GetActiveScene().name;
 
-            // Сохраняем данные (передаем оба параметра)
-            PlayerData.SavePlayerData(playerObj.transform, currentScene);
-            Debug.Log($"💾 Данные сохранены перед загрузкой уровня {targetSceneName}");
-        }
-        else
-        {
-            Debug.LogWarning("Игрок не найден для сохранения данных!");
+            PlayerData.SavePlayerPosition(playerObj.transform);
+            PlayerData.currentLevel = currentScene; // Сохраняем ТЕКУЩИЙ уровень, а не следующий
+            PlayerData.SaveLevel();
+
+            Debug.Log($"LevelLoader: Сохранена позиция {playerObj.transform.position} для уровня {currentScene}");
         }
     }
 

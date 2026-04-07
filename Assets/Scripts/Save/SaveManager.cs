@@ -8,18 +8,15 @@ public class SaveManager : MonoBehaviour
     [Header("Settings")]
     public bool showDebugMessages = true;
 
-    private GameObject player;
     private bool isRestarting = false;
-    private string sceneToLoad = "";
 
     void Awake()
     {
-        // Синглтон, который не уничтожается при загрузке сцены
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            Debug.Log("SaveManager создан и не будет уничтожен");
+            Debug.Log("SaveManager создан");
         }
         else
         {
@@ -29,7 +26,6 @@ public class SaveManager : MonoBehaviour
 
     void OnEnable()
     {
-        // Подписываемся на событие загрузки сцены
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -41,118 +37,101 @@ public class SaveManager : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (showDebugMessages)
-            Debug.Log($"Сцена {scene.name} загружена. Восстанавливаем игрока...");
+            Debug.Log($"Сцена {scene.name} загружена");
 
-        // Восстанавливаем позицию игрока после загрузки сцены
         RestorePlayerPosition();
     }
 
-    /// <summary>
-    /// Перезапустить уровень с сохранением позиции
-    /// </summary>
     public void RestartLevel()
     {
         if (isRestarting) return;
-
         isRestarting = true;
 
-        // Сохраняем позицию игрока ПЕРЕД перезагрузкой
-        SaveCurrentPlayerPosition();
+        SaveAllData();
 
-        // Перезагружаем текущую сцену
         string currentScene = SceneManager.GetActiveScene().name;
-        sceneToLoad = currentScene;
-
-        if (showDebugMessages)
-            Debug.Log($"Перезапуск уровня {currentScene}...");
-
         SceneManager.LoadScene(currentScene);
+
+        isRestarting = false;
     }
 
-    /// <summary>
-    /// Сохранить текущую позицию игрока
-    /// </summary>
-    void SaveCurrentPlayerPosition()
+    public void HardRestart()
+    {
+        if (isRestarting) return;
+        isRestarting = true;
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        PlayerSpawner spawner = FindFirstObjectByType<PlayerSpawner>();
+
+        if (spawner != null)
+        {
+            PlayerData.SaveSpawnerPosition(spawner.transform.position, spawner.transform.rotation);
+        }
+
+        PlayerData.SaveOnlyLevel(currentScene);
+
+        SceneManager.LoadScene(currentScene);
+
+        isRestarting = false;
+    }
+
+    private void SaveAllData()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
-            string currentScene = SceneManager.GetActiveScene().name;
-            PlayerData.SavePlayerData(player.transform, currentScene);
+            PlayerData.SavePlayerPosition(player.transform);
+        }
 
-            if (showDebugMessages)
-                Debug.Log($"Сохранена позиция: {player.transform.position}");
-        }
-        else
+        if (RuleManager.Instance != null)
         {
-            Debug.LogWarning("Игрок не найден для сохранения!");
+            RuleManager.Instance.SaveRules();
         }
+
+        PlayerData.currentLevel = SceneManager.GetActiveScene().name;
+        PlayerData.SaveLevel();
+
+        if (showDebugMessages)
+            Debug.Log("Все данные сохранены");
     }
 
-    /// <summary>
-    /// Восстановить позицию игрока после загрузки сцены
-    /// </summary>
-    void RestorePlayerPosition()
+    private void RestorePlayerPosition()
     {
-        // Ищем игрока
-        player = GameObject.FindGameObjectWithTag("Player");
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
 
         if (player == null)
         {
-            Debug.LogWarning("Игрок не найден в сцене, ждем...");
-            // Пробуем еще раз через кадр
             Invoke(nameof(RestorePlayerPosition), 0.1f);
             return;
         }
 
-        // Проверяем, есть ли сохраненные данные
-        if (PlayerData.hasData || PlayerData.HasSave())
+        if (PlayerData.LoadSavedData())
         {
-            // Загружаем данные если их нет в памяти
-            if (!PlayerData.hasData)
-                PlayerData.LoadSavedData();
-
-            // Восстанавливаем позицию
             player.transform.position = PlayerData.lastPosition;
             player.transform.rotation = PlayerData.lastRotation;
 
             if (showDebugMessages)
-                Debug.Log($"Игрок восстановлен на позиции: {PlayerData.lastPosition}");
-
-            // Очищаем флаг рестарта
-            isRestarting = false;
+                Debug.Log($"Позиция игрока восстановлена: {PlayerData.lastPosition}");
         }
         else
         {
             if (showDebugMessages)
-                Debug.Log("Нет сохраненных данных, игрок остается на стартовой позиции");
-
-            isRestarting = false;
+                Debug.Log("Нет сохраненных данных");
         }
     }
 
-    /// <summary>
-    /// Загрузить уровень с сохранением позиции
-    /// </summary>
-    public void LoadLevelWithSave(string sceneName)
+    public void LoadLevel(string sceneName)
     {
         if (isRestarting) return;
-
         isRestarting = true;
 
-        // Сохраняем позицию
-        SaveCurrentPlayerPosition();
-
-        // Сохраняем имя сцены в PlayerData
+        SaveAllData();
         PlayerData.currentLevel = sceneName;
-        PlayerData.SavePlayerData(player.transform, sceneName);
-
-        // Загружаем новую сцену
-        sceneToLoad = sceneName;
-
-        if (showDebugMessages)
-            Debug.Log($"Загрузка уровня {sceneName}...");
+        PlayerData.SaveLevel();
 
         SceneManager.LoadScene(sceneName);
+
+        isRestarting = false;
     }
 }

@@ -10,102 +10,77 @@ public class PlayerSpawner : MonoBehaviour
     public Vector3 fallbackPosition = Vector3.zero;
     public Vector3 fallbackRotation = Vector3.zero;
 
-    [Header("Debug")]
-    public bool showSpawnMessage = true;
-
     private GameObject player;
-    private bool hasSpawned = false;
 
     void Start()
     {
         SpawnPlayer();
+
+        // После спавна очищаем сохраненную позицию, чтобы при следующем переходе
+        // использовалась позиция спавнера нового уровня
+        if (useSavedData && PlayerData.HasSave() && player != null)
+        {
+            // Проверяем, не загрузили ли мы старую позицию
+            if (defaultSpawnPoint != null)
+            {
+                // Сравниваем с точкой спавна по умолчанию
+                if (Vector3.Distance(PlayerData.lastPosition, defaultSpawnPoint.position) > 50f)
+                {
+                    Debug.Log("PlayerSpawner: Сохраненная позиция слишком далеко, используем спавн по умолчанию");
+                    player.transform.position = defaultSpawnPoint.position;
+                    player.transform.rotation = defaultSpawnPoint.rotation;
+                }
+            }
+        }
     }
 
     void SpawnPlayer()
     {
         player = GameObject.FindGameObjectWithTag("Player");
-
         if (player == null)
         {
-            Debug.LogError("❌ Игрок не найден!");
+            Debug.LogError("PlayerSpawner: Игрок не найден");
             return;
         }
 
-        // ВАЖНО: Сначала загружаем сохраненные данные, если их нет
-        if (useSavedData && !PlayerData.hasData)
+        // Проверяем, есть ли сохранение и не переходим ли мы на новый уровень
+        if (useSavedData && PlayerData.HasSave())
         {
-            // Пытаемся загрузить из PlayerPrefs
             PlayerData.LoadSavedData();
-        }
 
-        if (useSavedData && PlayerData.hasData)
-        {
-            // Восстанавливаем позицию
+            // Если сохраненный уровень отличается от текущего, используем спавн по умолчанию
+            string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (PlayerData.currentLevel != currentScene)
+            {
+                Debug.Log($"PlayerSpawner: Переход на новый уровень ({currentScene}), используем спавн по умолчанию");
+                UseDefaultSpawn();
+                return;
+            }
+
+            // Тот же уровень - восстанавливаем позицию
             player.transform.position = PlayerData.lastPosition;
-            Debug.Log($"📍 Позиция игрока восстановлена: {PlayerData.lastPosition}");
-
-            // Восстанавливаем поворот
             player.transform.rotation = PlayerData.lastRotation;
-            Debug.Log($"🔄 Поворот игрока восстановлен: {PlayerData.lastRotation.eulerAngles}");
-
-            if (showSpawnMessage)
-                Debug.Log($"✅ Игрок заспавнен на сохраненной позиции");
+            Debug.Log($"PlayerSpawner: Игрок восстановлен на позиции {PlayerData.lastPosition}");
         }
-        else if (defaultSpawnPoint != null)
+        else
+        {
+            UseDefaultSpawn();
+        }
+    }
+
+    void UseDefaultSpawn()
+    {
+        if (defaultSpawnPoint != null)
         {
             player.transform.position = defaultSpawnPoint.position;
             player.transform.rotation = defaultSpawnPoint.rotation;
-            Debug.Log($"📍 Игрок заспавнен на точке: {defaultSpawnPoint.name}");
+            Debug.Log($"PlayerSpawner: Игрок заспавнен на точке {defaultSpawnPoint.name} (позиция {defaultSpawnPoint.position})");
         }
         else
         {
             player.transform.position = fallbackPosition;
             player.transform.rotation = Quaternion.Euler(fallbackRotation);
-            Debug.Log($"📍 Игрок заспавнен на запасной позиции: {fallbackPosition}");
-        }
-
-        hasSpawned = true;
-    }
-
-    // Метод для принудительного спавна на сохраненной позиции
-    public void RespawnAtSavedPosition()
-    {
-        if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player");
-
-        if (player != null && PlayerData.hasData)
-        {
-            player.transform.position = PlayerData.lastPosition;
-            player.transform.rotation = PlayerData.lastRotation;
-            Debug.Log("🔄 Игрок телепортирован на сохраненную позицию");
-        }
-    }
-
-    // Метод для ручного обновления позиции
-    public void UpdatePlayerPosition(Vector3 newPosition)
-    {
-        if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player");
-
-        if (player != null)
-        {
-            player.transform.position = newPosition;
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        if (defaultSpawnPoint != null)
-        {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawWireSphere(defaultSpawnPoint.position, 0.5f);
-            Gizmos.DrawRay(defaultSpawnPoint.position, defaultSpawnPoint.forward * 2f);
-        }
-        else
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(fallbackPosition, 0.5f);
-            Gizmos.DrawRay(fallbackPosition, Quaternion.Euler(fallbackRotation) * Vector3.forward * 2f);
+            Debug.Log($"PlayerSpawner: Игрок заспавнен на запасной позиции {fallbackPosition}");
         }
     }
 }
