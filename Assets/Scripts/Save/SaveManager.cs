@@ -78,11 +78,11 @@ public class SaveManager : MonoBehaviour
 
     private void SaveAllData()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            PlayerData.SavePlayerPosition(player.transform);
-        }
+        //GameObject player = GameObject.FindGameObjectWithTag("Player");
+        //if (player != null)
+        //{
+        //    PlayerData.SavePlayerPosition(player.transform);
+        //}
 
         if (RuleManager.Instance != null)
         {

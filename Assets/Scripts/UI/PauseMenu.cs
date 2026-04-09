@@ -46,10 +46,7 @@ public class PauseMenu : MonoBehaviour
         PC = FindFirstObjectByType<PlayerController>();
         RW = FindFirstObjectByType<RuleWeapon>();
 
-        LoadSettingsFromManager();
-        LoadSettingsFromPlayerPrefs();
-
-        // Обновляем текст ползунков после загрузки
+        LoadSettings();
         UpdateAllTexts();
 
         if (musicVolumeSlider != null)
@@ -62,36 +59,16 @@ public class PauseMenu : MonoBehaviour
             mouseSensitivitySlider.onValueChanged.AddListener(OnMouseSensitivityChanged);
     }
 
-    // Новый метод для обновления всех текстов
     void UpdateAllTexts()
     {
         if (musicVolumeSlider != null && musicVolumeText != null)
-        {
-            float value = musicVolumeSlider.value;
-            musicVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + " %";
-        }
+            musicVolumeText.text = Mathf.RoundToInt(musicVolumeSlider.value * 100).ToString() + " %";
 
         if (sfxVolumeSlider != null && sfxVolumeText != null)
-        {
-            float value = sfxVolumeSlider.value;
-            sfxVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + " %";
-        }
+            sfxVolumeText.text = Mathf.RoundToInt(sfxVolumeSlider.value * 100).ToString() + " %";
 
         if (mouseSensitivitySlider != null && mouseSensitivityText != null)
-        {
-            float value = mouseSensitivitySlider.value;
-            mouseSensitivityText.text = value.ToString("F1");
-        }
-    }
-
-    void OnDestroy()
-    {
-        if (SettingsManager.Instance != null)
-        {
-            SettingsManager.Instance.OnMusicVolumeChanged -= OnMusicVolumeChangedFromManager;
-            SettingsManager.Instance.OnSFXVolumeChanged -= OnSFXVolumeChangedFromManager;
-            SettingsManager.Instance.OnMouseSensitivityChanged -= OnMouseSensitivityChangedFromManager;
-        }
+            mouseSensitivityText.text = mouseSensitivitySlider.value.ToString("F1");
     }
 
     void Update()
@@ -101,7 +78,6 @@ public class PauseMenu : MonoBehaviour
             if (isPaused)
             {
                 ResumeGame();
-                SaveSettingsToManager();
                 Cursor.lockState = CursorLockMode.Locked;
             }
             else
@@ -167,9 +143,7 @@ public class PauseMenu : MonoBehaviour
     {
         PlayClickSound();
 
-        // Перезагружаем настройки перед открытием
-        LoadSettingsFromManager();
-        LoadSettingsFromPlayerPrefs();
+        LoadSettings();
         UpdateAllTexts();
 
         if (pauseMenuPanel != null)
@@ -182,7 +156,6 @@ public class PauseMenu : MonoBehaviour
     public void HideSettings()
     {
         PlayClickSound();
-        SaveSettingsToManager();
 
         if (settingsPanel != null)
             settingsPanel.SetActive(false);
@@ -234,76 +207,19 @@ public class PauseMenu : MonoBehaviour
 #endif
     }
 
-    void LoadSettingsFromManager()
+    void LoadSettings()
     {
-        if (SettingsManager.Instance == null)
-        {
-            Debug.LogWarning("SettingsManager не найден! Загружаю из PlayerPrefs");
-            LoadSettingsFromPlayerPrefs();
-            return;
-        }
-
-        if (musicVolumeSlider != null)
-            musicVolumeSlider.value = SettingsManager.Instance.GetMusicVolume();
-
-        if (sfxVolumeSlider != null)
-            sfxVolumeSlider.value = SettingsManager.Instance.GetSFXVolume();
-
-        if (mouseSensitivitySlider != null)
-            mouseSensitivitySlider.value = SettingsManager.Instance.GetMouseSensitivity();
-
-        SettingsManager.Instance.OnMusicVolumeChanged += OnMusicVolumeChangedFromManager;
-        SettingsManager.Instance.OnSFXVolumeChanged += OnSFXVolumeChangedFromManager;
-        SettingsManager.Instance.OnMouseSensitivityChanged += OnMouseSensitivityChangedFromManager;
-    }
-
-    void LoadSettingsFromPlayerPrefs()
-    {
-        if (musicVolumeSlider != null)
-        {
-            float savedMusicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
-            musicVolumeSlider.value = savedMusicVolume;
-        }
-
-        if (sfxVolumeSlider != null)
-        {
-            float savedSFXVolume = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
-            sfxVolumeSlider.value = savedSFXVolume;
-        }
-
-        if (mouseSensitivitySlider != null)
-        {
-            float savedSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 2f);
-            mouseSensitivitySlider.value = savedSensitivity;
-        }
-    }
-
-    void SaveSettingsToManager()
-    {
-        if (SettingsManager.Instance == null)
+        if (SettingsManager.Instance != null)
         {
             if (musicVolumeSlider != null)
-                PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider.value);
+                musicVolumeSlider.value = SettingsManager.Instance.GetMusicVolume();
 
             if (sfxVolumeSlider != null)
-                PlayerPrefs.SetFloat("SFXVolume", sfxVolumeSlider.value);
+                sfxVolumeSlider.value = SettingsManager.Instance.GetSFXVolume();
 
             if (mouseSensitivitySlider != null)
-                PlayerPrefs.SetFloat("MouseSensitivity", mouseSensitivitySlider.value);
-
-            PlayerPrefs.Save();
-            Debug.Log("Настройки сохранены в PlayerPrefs");
-            return;
+                mouseSensitivitySlider.value = SettingsManager.Instance.GetMouseSensitivity();
         }
-
-        if (musicVolumeSlider != null)
-            SettingsManager.Instance.SetMusicVolume(musicVolumeSlider.value);
-
-        if (sfxVolumeSlider != null)
-            SettingsManager.Instance.SetSFXVolume(sfxVolumeSlider.value);
-
-        if (mouseSensitivitySlider != null)
-            SettingsManager.Instance.SetMouseSensitivity(mouseSensitivitySlider.value);
     }
 
     void OnMusicVolumeChanged(float value)
@@ -313,8 +229,6 @@ public class PauseMenu : MonoBehaviour
 
         if (SettingsManager.Instance != null)
             SettingsManager.Instance.SetMusicVolume(value);
-        else
-            PlayerPrefs.SetFloat("MusicVolume", value);
     }
 
     void OnSFXVolumeChanged(float value)
@@ -327,8 +241,6 @@ public class PauseMenu : MonoBehaviour
 
         if (SettingsManager.Instance != null)
             SettingsManager.Instance.SetSFXVolume(value);
-        else
-            PlayerPrefs.SetFloat("SFXVolume", value);
     }
 
     void OnMouseSensitivityChanged(float value)
@@ -338,32 +250,11 @@ public class PauseMenu : MonoBehaviour
 
         if (SettingsManager.Instance != null)
             SettingsManager.Instance.SetMouseSensitivity(value);
-        else
-            PlayerPrefs.SetFloat("MouseSensitivity", value);
-    }
-
-    void OnMusicVolumeChangedFromManager(float value)
-    {
-        if (musicVolumeSlider != null && Mathf.Abs(musicVolumeSlider.value - value) > 0.01f)
-            musicVolumeSlider.value = value;
-    }
-
-    void OnSFXVolumeChangedFromManager(float value)
-    {
-        if (sfxVolumeSlider != null && Mathf.Abs(sfxVolumeSlider.value - value) > 0.01f)
-            sfxVolumeSlider.value = value;
-    }
-
-    void OnMouseSensitivityChangedFromManager(float value)
-    {
-        if (mouseSensitivitySlider != null && Mathf.Abs(mouseSensitivitySlider.value - value) > 0.01f)
-            mouseSensitivitySlider.value = value;
     }
 
     void PlayClickSound()
     {
-
-        clickSound.Play();
-
+        if (clickSound != null)
+            clickSound.Play();
     }
 }

@@ -18,20 +18,20 @@ public class PlayerSpawner : MonoBehaviour
 
         // После спавна очищаем сохраненную позицию, чтобы при следующем переходе
         // использовалась позиция спавнера нового уровня
-        if (useSavedData && PlayerData.HasSave() && player != null)
-        {
-            // Проверяем, не загрузили ли мы старую позицию
-            if (defaultSpawnPoint != null)
-            {
-                // Сравниваем с точкой спавна по умолчанию
-                if (Vector3.Distance(PlayerData.lastPosition, defaultSpawnPoint.position) > 50f)
-                {
-                    Debug.Log("PlayerSpawner: Сохраненная позиция слишком далеко, используем спавн по умолчанию");
-                    player.transform.position = defaultSpawnPoint.position;
-                    player.transform.rotation = defaultSpawnPoint.rotation;
-                }
-            }
-        }
+        //if (useSavedData && PlayerData.HasSave() && player != null)
+        //{
+        //    // Проверяем, не загрузили ли мы старую позицию
+        //    if (defaultSpawnPoint != null)
+        //    {
+        //        // Сравниваем с точкой спавна по умолчанию
+        //        if (Vector3.Distance(PlayerData.lastPosition, defaultSpawnPoint.position) > 50f)
+        //        {
+        //            Debug.Log("PlayerSpawner: Сохраненная позиция слишком далеко, используем спавн по умолчанию");
+        //            player.transform.position = defaultSpawnPoint.position;
+        //            player.transform.rotation = defaultSpawnPoint.rotation;
+        //        }
+        //    }
+        //}
     }
 
     void SpawnPlayer()
