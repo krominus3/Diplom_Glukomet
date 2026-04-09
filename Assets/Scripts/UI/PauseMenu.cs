@@ -6,27 +6,26 @@ using UnityEngine.UI;
 public class PauseMenu : MonoBehaviour
 {
     [Header("Panel References")]
-    public GameObject pauseMenuPanel;      // Панель с кнопками паузы
-    public GameObject settingsPanel;      // Панель с настройками
+    public GameObject pauseMenuPanel;
+    public GameObject settingsPanel;
     public GameObject backGround;
 
-
     [Header("Settings References")]
-    public Slider musicVolumeSlider;      // Ползунок громкости музыки
-    public Slider sfxVolumeSlider;        // Ползунок громкости звуков
-    public Slider mouseSensitivitySlider; // Ползунок чувствительности мыши
-    public TextMeshProUGUI musicVolumeText;          // Текст с значением громкости музыки
-    public TextMeshProUGUI sfxVolumeText;            // Текст с значением громкости звуков
-    public TextMeshProUGUI mouseSensitivityText;     // Текст с значением чувствительности мыши
+    public Slider musicVolumeSlider;
+    public Slider sfxVolumeSlider;
+    public Slider mouseSensitivitySlider;
+    public TextMeshProUGUI musicVolumeText;
+    public TextMeshProUGUI sfxVolumeText;
+    public TextMeshProUGUI mouseSensitivityText;
 
     [Header("Scene Settings")]
-    public string mainMenuSceneName = "MainMenu"; // Имя сцены главного меню
+    public string mainMenuSceneName = "MainMenu";
 
     [Header("Audio")]
-    public AudioSource clickSound;        // Звук нажатия на кнопку
+    public AudioSource clickSound;
 
     [Header("Input")]
-    public KeyCode pauseKey = KeyCode.Escape; // Клавиша паузы
+    public KeyCode pauseKey = KeyCode.Escape;
 
     private bool isPaused = false;
     private float previousTimeScale = 1f;
@@ -35,7 +34,6 @@ public class PauseMenu : MonoBehaviour
 
     void Start()
     {
-        // Скрываем меню паузы при старте
         if (pauseMenuPanel != null)
             pauseMenuPanel.SetActive(false);
 
@@ -48,11 +46,12 @@ public class PauseMenu : MonoBehaviour
         PC = FindFirstObjectByType<PlayerController>();
         RW = FindFirstObjectByType<RuleWeapon>();
 
-        // Загружаем настройки из SettingsManager
-        LoadSettingsFromPlayerPrefs();
         LoadSettingsFromManager();
+        LoadSettingsFromPlayerPrefs();
 
-        // Добавляем слушатели для ползунков
+        // Обновляем текст ползунков после загрузки
+        UpdateAllTexts();
+
         if (musicVolumeSlider != null)
             musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
 
@@ -63,9 +62,30 @@ public class PauseMenu : MonoBehaviour
             mouseSensitivitySlider.onValueChanged.AddListener(OnMouseSensitivityChanged);
     }
 
+    // Новый метод для обновления всех текстов
+    void UpdateAllTexts()
+    {
+        if (musicVolumeSlider != null && musicVolumeText != null)
+        {
+            float value = musicVolumeSlider.value;
+            musicVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + " %";
+        }
+
+        if (sfxVolumeSlider != null && sfxVolumeText != null)
+        {
+            float value = sfxVolumeSlider.value;
+            sfxVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + " %";
+        }
+
+        if (mouseSensitivitySlider != null && mouseSensitivityText != null)
+        {
+            float value = mouseSensitivitySlider.value;
+            mouseSensitivityText.text = value.ToString("F1");
+        }
+    }
+
     void OnDestroy()
     {
-        // Отписываемся от событий SettingsManager
         if (SettingsManager.Instance != null)
         {
             SettingsManager.Instance.OnMusicVolumeChanged -= OnMusicVolumeChangedFromManager;
@@ -76,7 +96,6 @@ public class PauseMenu : MonoBehaviour
 
     void Update()
     {
-        // Проверяем нажатие клавиши паузы
         if (Input.GetKeyDown(pauseKey))
         {
             if (isPaused)
@@ -93,8 +112,6 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
-    // ===== УПРАВЛЕНИЕ ПАУЗОЙ =====
-
     public void PauseGame()
     {
         isPaused = true;
@@ -105,7 +122,6 @@ public class PauseMenu : MonoBehaviour
         ShowBackground();
         OnPlayerPaused();
 
-        // Разблокируем курсор
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -134,12 +150,9 @@ public class PauseMenu : MonoBehaviour
         ShowBackground();
         OnPlayerPaused();
 
-        // Блокируем курсор обратно
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
-
-    // ===== НАВИГАЦИЯ =====
 
     public void ShowPauseMenu()
     {
@@ -153,6 +166,11 @@ public class PauseMenu : MonoBehaviour
     public void ShowSettings()
     {
         PlayClickSound();
+
+        // Перезагружаем настройки перед открытием
+        LoadSettingsFromManager();
+        LoadSettingsFromPlayerPrefs();
+        UpdateAllTexts();
 
         if (pauseMenuPanel != null)
             pauseMenuPanel.SetActive(false);
@@ -173,8 +191,6 @@ public class PauseMenu : MonoBehaviour
             pauseMenuPanel.SetActive(true);
     }
 
-    // ===== КНОПКИ МЕНЮ ПАУЗЫ =====
-
     public void OnResume()
     {
         PlayClickSound();
@@ -191,11 +207,9 @@ public class PauseMenu : MonoBehaviour
     {
         PlayClickSound();
 
-        // Возвращаем время
         Time.timeScale = 1f;
         isPaused = false;
 
-        // Загружаем главное меню
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
@@ -203,11 +217,9 @@ public class PauseMenu : MonoBehaviour
     {
         PlayClickSound();
 
-        // Возвращаем время
         Time.timeScale = 1f;
         isPaused = false;
 
-        // Перезагружаем текущую сцену
         SaveManager.Instance.HardRestart();
     }
 
@@ -222,8 +234,6 @@ public class PauseMenu : MonoBehaviour
 #endif
     }
 
-    // ===== НАСТРОЙКИ ЧЕРЕЗ SETTINGSMANAGER =====
-
     void LoadSettingsFromManager()
     {
         if (SettingsManager.Instance == null)
@@ -233,7 +243,6 @@ public class PauseMenu : MonoBehaviour
             return;
         }
 
-        // Загружаем значения из SettingsManager
         if (musicVolumeSlider != null)
             musicVolumeSlider.value = SettingsManager.Instance.GetMusicVolume();
 
@@ -243,7 +252,6 @@ public class PauseMenu : MonoBehaviour
         if (mouseSensitivitySlider != null)
             mouseSensitivitySlider.value = SettingsManager.Instance.GetMouseSensitivity();
 
-        // Подписываемся на изменения в SettingsManager
         SettingsManager.Instance.OnMusicVolumeChanged += OnMusicVolumeChangedFromManager;
         SettingsManager.Instance.OnSFXVolumeChanged += OnSFXVolumeChangedFromManager;
         SettingsManager.Instance.OnMouseSensitivityChanged += OnMouseSensitivityChangedFromManager;
@@ -255,21 +263,18 @@ public class PauseMenu : MonoBehaviour
         {
             float savedMusicVolume = PlayerPrefs.GetFloat("MusicVolume", 0.75f);
             musicVolumeSlider.value = savedMusicVolume;
-            OnMusicVolumeChanged(savedMusicVolume);
         }
 
         if (sfxVolumeSlider != null)
         {
             float savedSFXVolume = PlayerPrefs.GetFloat("SFXVolume", 0.75f);
             sfxVolumeSlider.value = savedSFXVolume;
-            OnSFXVolumeChanged(savedSFXVolume);
         }
 
         if (mouseSensitivitySlider != null)
         {
             float savedSensitivity = PlayerPrefs.GetFloat("MouseSensitivity", 2f);
             mouseSensitivitySlider.value = savedSensitivity;
-            OnMouseSensitivityChanged(savedSensitivity);
         }
     }
 
@@ -277,7 +282,6 @@ public class PauseMenu : MonoBehaviour
     {
         if (SettingsManager.Instance == null)
         {
-            // Если нет SettingsManager, сохраняем в PlayerPrefs
             if (musicVolumeSlider != null)
                 PlayerPrefs.SetFloat("MusicVolume", musicVolumeSlider.value);
 
@@ -292,7 +296,6 @@ public class PauseMenu : MonoBehaviour
             return;
         }
 
-        // Сохраняем через SettingsManager
         if (musicVolumeSlider != null)
             SettingsManager.Instance.SetMusicVolume(musicVolumeSlider.value);
 
@@ -303,31 +306,41 @@ public class PauseMenu : MonoBehaviour
             SettingsManager.Instance.SetMouseSensitivity(mouseSensitivitySlider.value);
     }
 
-    // ===== ОБРАБОТЧИКИ ИЗМЕНЕНИЙ =====
-
     void OnMusicVolumeChanged(float value)
     {
         if (musicVolumeText != null)
-            musicVolumeText.text = Mathf.RoundToInt(value * 100).ToString();
+            musicVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + " %";
+
+        if (SettingsManager.Instance != null)
+            SettingsManager.Instance.SetMusicVolume(value);
+        else
+            PlayerPrefs.SetFloat("MusicVolume", value);
     }
 
     void OnSFXVolumeChanged(float value)
     {
         if (sfxVolumeText != null)
-            sfxVolumeText.text = Mathf.RoundToInt(value * 100).ToString();
+            sfxVolumeText.text = Mathf.RoundToInt(value * 100).ToString() + " %";
 
-        // Применяем громкость звуков эффектов
         if (clickSound != null)
             clickSound.volume = value;
+
+        if (SettingsManager.Instance != null)
+            SettingsManager.Instance.SetSFXVolume(value);
+        else
+            PlayerPrefs.SetFloat("SFXVolume", value);
     }
 
     void OnMouseSensitivityChanged(float value)
     {
         if (mouseSensitivityText != null)
             mouseSensitivityText.text = value.ToString("F1");
-    }
 
-    // ===== ОБРАБОТЧИКИ ИЗМЕНЕНИЙ ИЗ SETTINGSMANAGER =====
+        if (SettingsManager.Instance != null)
+            SettingsManager.Instance.SetMouseSensitivity(value);
+        else
+            PlayerPrefs.SetFloat("MouseSensitivity", value);
+    }
 
     void OnMusicVolumeChangedFromManager(float value)
     {
@@ -347,14 +360,10 @@ public class PauseMenu : MonoBehaviour
             mouseSensitivitySlider.value = value;
     }
 
-    // Звук нажатия
     void PlayClickSound()
     {
-        if (clickSound != null && Time.timeScale != 0)
-        {
-            float volume = SettingsManager.Instance != null ? SettingsManager.Instance.GetSFXVolume() : 1f;
-            clickSound.volume = volume;
-            clickSound.Play();
-        }
+
+        clickSound.Play();
+
     }
 }
