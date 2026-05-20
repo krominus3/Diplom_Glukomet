@@ -2892,7 +2892,7 @@ MonoBehaviour:
   musicVolumeText: {fileID: 383910271}
   sfxVolumeText: {fileID: 1158132551}
   mouseSensitivityText: {fileID: 1782562880}
-  firstLevelName: GrowthTutorial
+  firstLevelName: Level1
   loadingText: {fileID: 242555858}
   loadingProgressBar: {fileID: 267574042}
   newGameButton: {fileID: 1219379323}

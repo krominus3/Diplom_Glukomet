@@ -38,6 +38,7 @@ public class LevelLoader : MonoBehaviour
 
     void Start()
     {
+        print("asdasdasdasd");
         if (loadingPanel != null)
             loadingPanel.SetActive(false);
 
