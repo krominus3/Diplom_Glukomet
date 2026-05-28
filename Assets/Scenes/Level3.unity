@@ -1758,7 +1758,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 84b8fdfd63ea377439b8a78006133c3a, type: 2}
+  - {fileID: 2100000, guid: 327ea8164979abd46a65a26d0ff06c4c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2585,7 +2585,7 @@ Transform:
   m_GameObject: {fileID: 404213652}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 51.2403, y: 10, z: 0.0538}
+  m_LocalPosition: {x: 51.2403, y: 9.54, z: 0.0538}
   m_LocalScale: {x: 5.9795, y: 1, z: 13.856}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4774,7 +4774,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -13.81983, y: 6.49, z: 3.9499962}
-  m_LocalScale: {x: 0.5, y: 7, z: 7}
+  m_LocalScale: {x: 0.49, y: 7, z: 7}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 483286363}
@@ -5813,7 +5813,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -4.81983, y: 6.49, z: 3.9499962}
-  m_LocalScale: {x: 0.5, y: 7, z: 7}
+  m_LocalScale: {x: 0.49, y: 7, z: 7}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 483286363}
@@ -6516,7 +6516,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 47.729996, y: 6.49, z: 3.9499962}
-  m_LocalScale: {x: 3.5, y: 7, z: 7}
+  m_LocalScale: {x: 3.4, y: 7, z: 7}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 483286363}
@@ -8936,7 +8936,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 84b8fdfd63ea377439b8a78006133c3a, type: 2}
+  - {fileID: 2100000, guid: 327ea8164979abd46a65a26d0ff06c4c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -9182,7 +9182,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 5.18017, y: 6.49, z: 3.9499962}
-  m_LocalScale: {x: 0.5, y: 7, z: 7}
+  m_LocalScale: {x: 0.49, y: 7, z: 7}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 483286363}
@@ -12170,8 +12170,8 @@ MonoBehaviour:
   position: {x: 10, y: 10}
   updateInterval: 0.5
   maxSamples: 60
-  showBackground: 1
-  backgroundColor: {r: 0, g: 0, b: 0, a: 0.7}
+  showBackground: 0
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1001 &1881074673
 PrefabInstance:
   m_ObjectHideFlags: 0
